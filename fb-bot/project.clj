@@ -31,7 +31,7 @@
                  [selmer "1.12.1"]]
 
   :min-lein-version "2.0.0"
-  
+
   :source-paths ["src/clj"]
   :test-paths ["test/clj"]
   :resource-paths ["resources"]
@@ -41,29 +41,29 @@
   :plugins [[lein-immutant "2.1.0"]]
 
   :profiles
-  {:uberjar {:omit-source true
-             :aot :all
-             :uberjar-name "fb-bot.jar"
-             :source-paths ["env/prod/clj"]
-             :resource-paths ["env/prod/resources"]}
+  {:uberjar       {:omit-source    true
+                   :aot            :all
+                   :uberjar-name   "fb-bot.jar"
+                   :source-paths   ["env/prod/clj"]
+                   :resource-paths ["env/prod/resources"]}
 
    :dev           [:project/dev :profiles/dev]
    :test          [:project/dev :project/test :profiles/test]
 
-   :project/dev  {:jvm-opts ["-Dconf=dev-config.edn" "--add-modules" "java.xml.bind"]
-                  :dependencies [[expound "0.7.1"]
-                                 [pjstadig/humane-test-output "0.8.3"]
-                                 [prone "1.6.1"]
-                                 [ring/ring-devel "1.7.0"]
-                                 [ring/ring-mock "0.3.2"]]
-                  :plugins      [[com.jakemccrary/lein-test-refresh "0.23.0"]]
-                  
-                  :source-paths ["env/dev/clj"]
-                  :resource-paths ["env/dev/resources"]
-                  :repl-options {:init-ns user}
-                  :injections [(require 'pjstadig.humane-test-output)
-                               (pjstadig.humane-test-output/activate!)]}
-   :project/test {:jvm-opts ["-Dconf=test-config.edn" "--add-modules" "java.xml.bind"]
-                  :resource-paths ["env/test/resources"]}
-   :profiles/dev {}
+   :project/dev   {:jvm-opts       ["-Dconf=dev-config.edn" "--add-modules" "java.xml.bind"]
+                   :dependencies   [[expound "0.7.1"]
+                                    [pjstadig/humane-test-output "0.8.3"]
+                                    [prone "1.6.1"]
+                                    [ring/ring-devel "1.7.0"]
+                                    [ring/ring-mock "0.3.2"]]
+                   :plugins        [[com.jakemccrary/lein-test-refresh "0.23.0"]]
+
+                   :source-paths   ["env/dev/clj"]
+                   :resource-paths ["env/dev/resources"]
+                   :repl-options   {:init-ns user}
+                   :injections     [(require 'pjstadig.humane-test-output)
+                                    (pjstadig.humane-test-output/activate!)]}
+   :project/test  {:jvm-opts       ["-Dconf=test-config.edn" "--add-modules" "java.xml.bind"]
+                   :resource-paths ["env/test/resources"]}
+   :profiles/dev  {}
    :profiles/test {}})
