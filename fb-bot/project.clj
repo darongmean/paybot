@@ -66,4 +66,8 @@
    :project/test  {:jvm-opts       ["-Dconf=test-config.edn" "--add-modules" "java.xml.bind"]
                    :resource-paths ["env/test/resources"]}
    :profiles/dev  {}
-   :profiles/test {}})
+   :profiles/test {}}
+
+  :test-refresh
+  {:growl          true
+   :notify-command ["terminal-notifier" "-title" "Tests" "-message"]})
