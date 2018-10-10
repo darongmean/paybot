@@ -16,11 +16,8 @@
 (cljs.nodejs/enable-util-print!)
 
 
-(defonce counter (atom 1))
-
-
 (defn routes [request response raise]
-  (-> (str "Hello " @counter " !")
+  (-> (str "Hello world!")
       (res/ok)
       (res/content-type "text/plain")
       (response)
