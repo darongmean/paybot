@@ -1,0 +1,13 @@
+;; shadow-cljs configuration
+{:deps
+ true
+
+ :nrepl
+ {:port       9000
+  :middleware []}
+
+ :builds
+ {:app {:target    :node-script
+        :output-to "target/index.js"
+        :main      fbbot.core/main
+        :devtools  {:after-load fbbot.core/hot-reload}}}}

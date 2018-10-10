@@ -1,0 +1,14 @@
+{:paths
+ ["src/dev" "src/main" "src/test"]
+
+ :deps
+ {com.taoensso/timbre       {:mvn/version "4.10.0"}
+
+  macchiato/core            {:mvn/version "0.2.14"}
+  macchiato/env             {:mvn/version "0.0.6"}
+  macchiato/http            {:mvn/version "0.1.1"}
+
+  mount                     {:mvn/version "0.1.13"}
+
+  org.clojure/clojure       {:mvn/version "1.9.0"}
+  org.clojure/clojurescript {:mvn/version "1.10.339"}}}

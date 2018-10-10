@@ -1,0 +1,12 @@
+node_modules
+target
+
+.DS_Store
+.shadow-cljs
+.cpcache
+yarn-*.log
+
+.idea
+*.iml
+
+.nrepl-*
