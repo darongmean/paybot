@@ -2,9 +2,10 @@
   (:require
     [cljs.nodejs]
 
-    [macchiato.env :as config]
+    [fbbot.system.environment :as env]
+    [fbbot.system.server :as http]
+
     [macchiato.middleware.defaults :as defaults]
-    [macchiato.server :as http]
     [macchiato.util.response :as res]
 
     [mount.core :as mount :refer [defstate]]
@@ -19,32 +20,19 @@
 
 
 (defn routes [request response raise]
-  (-> (str "Hello " @counter " !!!")
+  (-> (str "Hello " @counter " !")
       (res/ok)
       (res/content-type "text/plain")
-      (response)))
+      (response)
+      (defaults/wrap-defaults defaults/site-defaults)))
 
 
-(defstate environment
-          :start (-> (config/env)
-                     (update-in [:host] (fnil identity "localhost"))
-                     (update-in [:port] (fnil identity 3000))))
+(defstate environment :start (env/load-environment))
 
 
 (defstate http-server
-          :start (let [{:keys [host port]} @environment
-                       server (http/start
-                                {:handler    (defaults/wrap-defaults routes defaults/site-defaults)
-                                 :host       host
-                                 :port       port
-                                 :on-success #(info "server started on" host ":" port)})
-                       *socket-coll (atom [])
-                       _ (.on server "connection" #(swap! *socket-coll conj %1))]
-                   [server *socket-coll])
-          :stop (let [[server *socket-coll] @http-server]
-                  (doseq [socket (or @*socket-coll [])]
-                    (.destroy socket))
-                  (.close server #(info "server stopped."))))
+          :start (http/start-server routes @environment)
+          :stop (http/stop-server @http-server))
 
 
 (defn main [& cli-args]
