@@ -8,6 +8,10 @@
   macchiato/env             {:mvn/version "0.0.6"}
   macchiato/http            {:mvn/version "0.1.1"}
 
+  metosin/reitit-core       {:mvn/version "0.2.3"}
+  metosin/reitit-middleware {:mvn/version "0.2.3"}
+  metosin/reitit-ring       {:mvn/version "0.2.3"}
+
   mount                     {:mvn/version "0.1.13"}
 
   org.clojure/clojure       {:mvn/version "1.9.0"}

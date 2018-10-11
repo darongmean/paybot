@@ -10,25 +10,33 @@
 
     [mount.core :as mount :refer [defstate]]
 
+    [reitit.ring :as ring]
+
     [taoensso.timbre :refer-macros [info]]))
 
 
 (cljs.nodejs/enable-util-print!)
 
 
-(defn routes [request response raise]
+(defn hello-world [request response raise]
   (-> (str "Hello world!")
       (res/ok)
       (res/content-type "text/plain")
-      (response)
-      (defaults/wrap-defaults defaults/site-defaults)))
+      (response)))
+
+
+(def paybot
+  (ring/ring-handler
+    (ring/router ["/" {:get hello-world}])
+    (ring/create-default-handler)
+    {:middleware [[defaults/wrap-defaults defaults/site-defaults]]}))
 
 
 (defstate environment :start (env/load-environment))
 
 
 (defstate http-server
-          :start (http/start-server routes @environment)
+          :start (http/start-server paybot @environment)
           :stop (http/stop-server @http-server))
 
 
