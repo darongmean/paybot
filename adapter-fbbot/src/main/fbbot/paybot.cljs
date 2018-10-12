@@ -18,6 +18,10 @@
 (def paybot
   (ring/ring-handler
     (ring/router
-      ["/" {:get hello-world}]
-      {:middleware [[defaults/wrap-defaults defaults/site-defaults]]})
+      [["/" {:middleware [[defaults/wrap-defaults defaults/site-defaults]]
+             :get        hello-world}]])
     (ring/create-default-handler)))
+
+(comment
+  (do
+    (paybot {:request-method :get, :uri "/"} cljs.pprint/pprint identity)))
