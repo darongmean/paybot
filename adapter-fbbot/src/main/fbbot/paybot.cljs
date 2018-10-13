@@ -1,5 +1,6 @@
 (ns fbbot.paybot
   (:require
+    [cljs.spec.alpha :as s]
     [cljs.test :refer (deftest is)]
 
     [macchiato.middleware.defaults :as middleware]
@@ -78,4 +79,6 @@
                       "hub.verify_token" "MAGIC_TOKEN_1234"}
      :uri            "/messenger"}
     success-debug
-    fail-debug))
+    fail-debug)
+  (s/def ::name string?)
+  (s/explain ::name 1))
