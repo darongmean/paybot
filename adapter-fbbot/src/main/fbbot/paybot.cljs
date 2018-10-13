@@ -6,10 +6,10 @@
 
     [reitit.ring :as ring]
 
-    [taoensso.timbre :refer-macros [info]]))
+    [taoensso.timbre :refer-macros [debug error]]))
 
 
-(defn hello-world [request respond raise]
+(defn hello-world [_ respond _]
   (-> (str "Hello world!")
       (ring-response/ok)
       (ring-response/content-type "text/plain")
@@ -41,6 +41,14 @@
     (ring/create-default-handler)))
 
 (comment
+  (defn success-debug [obj]
+    (debug "result >> success")
+    (cljs.pprint/pprint obj)
+    (debug "result << success"))
+  (defn fail-debug [obj]
+    (error "result >> fail")
+    (cljs.pprint/pprint obj)
+    (error "result << fail"))
   (paybot
     {:request-method :get
      :headers        {"Accept" "application/json"}
@@ -49,5 +57,5 @@
                       "hub.challenge"    "800315870",
                       "hub.verify_token" "MAGIC_TOKEN_1234"}
      :uri            "/messenger"}
-    cljs.pprint/pprint
-    identity))
+    success-debug
+    fail-debug))
