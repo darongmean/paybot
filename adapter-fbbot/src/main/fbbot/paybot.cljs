@@ -3,9 +3,8 @@
     [com.gfredericks.test.chuck.clojure-test :refer-macros [checking]]
 
     [cljs.spec.alpha :as s]
+    [cljs.spec.gen.alpha :as gen]
     [cljs.test :refer (deftest is)]
-
-    [clojure.test.check.generators :as gen]
 
     [macchiato.middleware.defaults :as middleware]
     [macchiato.middleware.restful-format :as rest-middleware]
@@ -29,13 +28,36 @@
       (assoc :messenger/challenge (params "hub.challenge"))
       (assoc :messenger/verify-token (params "hub.verify_token"))))
 
+(s/def :http.success/status #{200})
+(s/def :http/body string?)
+(s/def :messenger.response/webhook-challenge
+  (s/keys :req-un [:http.success/status :http/body]))
 
-(defn subscribe-response [request respond _]
+(s/def :messenger.request/verify-webhook
+  (s/with-gen
+    ; HACK: clojure.spec doesn't support non-keyword map entry yet :(
+    (s/cat :hub.mode (s/tuple #{"hub.mode"} #{"subscribe"})
+           :hub.challenge (s/tuple #{"hub.challenge"} string?)
+           :hub.verify-token (s/tuple #{"hub.verify_token"} string?))
+    #(gen/hash-map
+       "hub.mode" (s/gen #{"subscribe"})
+       "hub.challenge" (s/gen string?)
+       "hub.verify_token" (s/gen string?))))
+
+(defn hub-challenge [request]
+  {:pre  [(->> request :params (s/assert :messenger.request/verify-webhook))]
+   :post [(s/assert :messenger.response/webhook-challenge %)]}
   (let [{:messenger/keys [challenge]} (messenger-request request)]
     ; TODO: need to check mode and verify-token
     (-> challenge
-        (ring-response/ok)
-        (respond))))
+        (ring-response/ok))))
+
+
+(defn respond-with-fn [f]
+  (fn
+    ([request] (f request))
+    ([request respond _]
+     (respond (f request)))))
 
 
 (def paybot
@@ -45,26 +67,19 @@
              :get        hello-world}]
        ["/messenger" {:middleware [[middleware/wrap-defaults middleware/api-defaults]
                                    [rest-middleware/wrap-restful-format {:keywordize? true}]]
-                      :get        subscribe-response}]])
+                      :get        (respond-with-fn hub-challenge)}]])
     (ring/create-default-handler)))
 
 (deftest paybot-test
   (checking "that the same 'challenge' token returned when verify webhook" 100
-    [challenge gen/string-alphanumeric
-     verify-token gen/string-alphanumeric]
+    [verify-hook (s/gen :messenger.request/verify-webhook)]
     (paybot
       {:request-method :get
-       :headers        {"Accept" "application/json"}
-       :body           {}
-       :params         {"hub.mode"         "subscribe",
-                        "hub.challenge"    challenge,
-                        "hub.verify_token" verify-token}
+       :params         verify-hook
        :uri            "/messenger"}
-      (fn [response]
-        (is (= 200 (:status response)))
-        (is (= "application/json" (get-in response [:headers "Content-Type"])))
-        (is (= (str "\"" challenge "\"") (:body response))))
+      #(is (= (verify-hook "hub.challenge") (:body %)))
       identity)))
+
 
 (comment
   (defn success-debug [obj]
@@ -84,6 +99,4 @@
                       "hub.verify_token" "MAGIC_TOKEN_1234"}
      :uri            "/messenger"}
     success-debug
-    fail-debug)
-  (s/def ::name string?)
-  (s/explain ::name 1))
+    fail-debug))
