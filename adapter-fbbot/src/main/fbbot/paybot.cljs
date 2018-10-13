@@ -1,5 +1,7 @@
 (ns fbbot.paybot
   (:require
+    [cljs.test :refer (deftest is)]
+
     [macchiato.middleware.defaults :as middleware]
     [macchiato.middleware.restful-format :as rest-middleware]
     [macchiato.util.response :as ring-response]
@@ -25,10 +27,28 @@
 
 (defn subscribe-response [request respond _]
   (let [{:messenger/keys [challenge]} (messenger-request request)]
+    ; TODO: need to check mode and verify-token
     (-> challenge
         (ring-response/ok)
         (respond))))
 
+
+(declare paybot)
+
+(deftest verify-webhook-by-returning-provided-challenge
+  (paybot
+    {:request-method :get
+     :headers        {"Accept" "application/json"}
+     :body           {}
+     :params         {"hub.mode"         "subscribe",
+                      "hub.challenge"    "800315870",
+                      "hub.verify_token" "MAGIC_TOKEN_1234"}
+     :uri            "/messenger"}
+    (fn [response]
+      (is (= 200 (:status response)))
+      (is (= "application/json" (get-in response [:headers "Content-Type"])))
+      (is (= "\"800315870\"" (:body response))))
+    identity))
 
 (def paybot
   (ring/ring-handler

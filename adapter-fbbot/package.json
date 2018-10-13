@@ -6,6 +6,7 @@
   "main": "target/index.js",
   "scripts": {
     "server": "node target/index.js",
+    "test": "shadow-cljs watch test",
     "watch": "shadow-cljs watch app"
   },
   "devDependencies": {

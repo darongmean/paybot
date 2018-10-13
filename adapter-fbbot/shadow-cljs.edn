@@ -7,7 +7,11 @@
   :middleware []}
 
  :builds
- {:app {:target    :node-script
-        :output-to "target/index.js"
-        :main      fbbot.core/main
-        :devtools  {:after-load fbbot.core/hot-reload}}}}
+ {:app  {:target    :node-script
+         :output-to "target/index.js"
+         :main      fbbot.core/main
+         :devtools  {:after-load fbbot.core/hot-reload}}
+  :test {:target    :node-test
+         :output-to "target/node-tests.js"
+         :ns-regexp "[paybot|dev]$"
+         :autorun   true}}}
