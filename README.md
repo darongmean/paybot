@@ -1,4 +1,4 @@
-# Payment Bot
+# PayBot
 
 It's an experiment project for me to understand more on the following topics:
 
