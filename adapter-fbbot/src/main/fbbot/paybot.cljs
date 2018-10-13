@@ -16,10 +16,18 @@
       (respond)))
 
 
-(defn messenger-response [request respond raise]
-  (-> {:message "Hello FB Messenger!"}
-      (ring-response/ok)
-      (respond)))
+(defn messenger-request [{:keys [params]}]
+  (-> {}
+      (assoc :messenger/mode (params "hub.mode"))
+      (assoc :messenger/challenge (params "hub.challenge"))
+      (assoc :messenger/verify-token (params "hub.verify_token"))))
+
+
+(defn subscribe-response [request respond _]
+  (let [{:messenger/keys [challenge]} (messenger-request request)]
+    (-> challenge
+        (ring-response/ok)
+        (respond))))
 
 
 (def paybot
@@ -28,15 +36,18 @@
       [["/" {:middleware [[middleware/wrap-defaults middleware/site-defaults]]
              :get        hello-world}]
        ["/messenger" {:middleware [[middleware/wrap-defaults middleware/api-defaults]
-                                   [rest-middleware/wrap-restful-format]]
-                      :get        messenger-response}]])
+                                   [rest-middleware/wrap-restful-format {:keywordize? true}]]
+                      :get        subscribe-response}]])
     (ring/create-default-handler)))
 
-(comment (do
-           (paybot
-             {:request-method :get
-              :headers        {"Accept" "application/json"}
-              :body           {}
-              :uri            "/messenger"}
-             cljs.pprint/pprint
-             identity)))
+(comment
+  (paybot
+    {:request-method :get
+     :headers        {"Accept" "application/json"}
+     :body           {}
+     :params         {"hub.mode"         "subscribe",
+                      "hub.challenge"    "800315870",
+                      "hub.verify_token" "MAGIC_TOKEN_1234"}
+     :uri            "/messenger"}
+    cljs.pprint/pprint
+    identity))
