@@ -22,12 +22,6 @@
       (respond)))
 
 
-(defn messenger-request [{:keys [params]}]
-  (-> {}
-      (assoc :messenger/mode (params "hub.mode"))
-      (assoc :messenger/challenge (params "hub.challenge"))
-      (assoc :messenger/verify-token (params "hub.verify_token"))))
-
 (s/def :http.success/status #{200})
 (s/def :http/body string?)
 (s/def :messenger.response/webhook-challenge
@@ -44,20 +38,19 @@
        "hub.challenge" (s/gen string?)
        "hub.verify_token" (s/gen string?))))
 
-(defn hub-challenge [request]
+(defn webhook-challenge [request]
   {:pre  [(->> request :params (s/assert :messenger.request/verify-webhook))]
    :post [(s/assert :messenger.response/webhook-challenge %)]}
-  (let [{:messenger/keys [challenge]} (messenger-request request)]
-    ; TODO: need to check mode and verify-token
-    (-> challenge
-        (ring-response/ok))))
+  ; TODO: need to check mode and verify-token
+  (-> request
+      (get-in [:params "hub.challenge"])
+      (ring-response/ok)))
 
 
 (defn respond-with-fn [f]
   (fn
     ([request] (f request))
-    ([request respond _]
-     (respond (f request)))))
+    ([request respond _] (respond (f request)))))
 
 
 (def paybot
@@ -67,17 +60,17 @@
              :get        hello-world}]
        ["/messenger" {:middleware [[middleware/wrap-defaults middleware/api-defaults]
                                    [rest-middleware/wrap-restful-format {:keywordize? true}]]
-                      :get        (respond-with-fn hub-challenge)}]])
+                      :get        (respond-with-fn webhook-challenge)}]])
     (ring/create-default-handler)))
 
 (deftest paybot-test
   (checking "that the same 'challenge' token returned when verify webhook" 100
-    [verify-hook (s/gen :messenger.request/verify-webhook)]
+    [verify-webhook-request (s/gen :messenger.request/verify-webhook)]
     (paybot
       {:request-method :get
-       :params         verify-hook
+       :params         verify-webhook-request
        :uri            "/messenger"}
-      #(is (= (verify-hook "hub.challenge") (:body %)))
+      #(is (= (verify-webhook-request "hub.challenge") (:body %)))
       identity)))
 
 
